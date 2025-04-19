@@ -1,0 +1,63 @@
+
+plugins {
+    id 'application'
+    id 'org.beryx.jlink' version '2.25.0'
+}
+
+repositories {
+    mavenCentral()
+}
+
+def javafxVersion = '21'
+def osName = org.gradle.internal.os.OperatingSystem.current()
+def platform = osName.windows ? 'win' : osName.macOsX ? 'mac' : 'linux'
+
+dependencies {
+    implementation "org.apache.pdfbox:pdfbox:2.0.29"
+    implementation "org.apache.pdfbox:fontbox:2.0.29"
+    implementation 'commons-logging:commons-logging:1.2'
+
+    implementation "org.openjfx:javafx-base:${javafxVersion}:${platform}"
+    implementation "org.openjfx:javafx-controls:${javafxVersion}:${platform}"
+    implementation "org.openjfx:javafx-graphics:${javafxVersion}:${platform}"
+    implementation "org.openjfx:javafx-swing:${javafxVersion}:${platform}"
+}
+
+application {
+    mainClass = 'PDFBookmarkViewerDualModeFinal'
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += [
+        '--module-path', classpath.asPath,
+        '--add-modules', 'javafx.controls,javafx.swing'
+    ]
+}
+
+run {
+    doFirst {
+        jvmArgs = [
+            '--module-path', classpath.asPath,
+            '--add-modules', 'javafx.controls,javafx.swing'
+        ]
+    }
+}
+
+jlink {
+    imageName = 'PDFBookmarkViewerDualModeFinal'
+    launcher {
+        name = 'PDFBookmarkViewerDualModeFinal'
+    }
+    jpackage {
+        imageName = 'PDFBookmarkViewerDualModeFinal'
+        installerName = 'PDFBookmarkViewerDualModeFinal'
+        skipInstaller = false
+        if (org.gradle.internal.os.OperatingSystem.current().windows) {
+            installerType = 'exe'
+        } else if (org.gradle.internal.os.OperatingSystem.current().macOsX) {
+            installerType = 'dmg'
+        } else {
+            installerType = 'deb'
+        }
+    }
+}
